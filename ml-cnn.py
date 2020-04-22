@@ -35,6 +35,8 @@ if __name__ == '__main__':
     train = []
     # 训练集标签
     labels = []
+    # 保存损失平均值
+    losses_mean = []
 
     # 随机创建一组多标签数据集和
     for i in range(10000):
@@ -88,4 +90,10 @@ if __name__ == '__main__':
             losses.append(loss.data.mean())
 
         loss_mean = np.mean(losses)
+        losses_mean.append(loss_mean)
         print('[{:d}/{:d}] Loss: {:.3f}'.format((epoch + 1), epochs, loss_mean))
+
+    # 绘制图像
+    plt.plot(range(len(losses_mean)), losses_mean)
+    plt.ylabel('Loss')
+    plt.show()

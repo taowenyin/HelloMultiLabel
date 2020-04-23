@@ -4,6 +4,11 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
+from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data import DataLoader
+from torch.utils.data import TensorDataset
+
+
 # 构建多标签CNN模型
 class MLCnn(nn.Module):
     '''
@@ -32,30 +37,75 @@ class MLCnn(nn.Module):
 
 if __name__ == '__main__':
     # 训练数据集
-    train = []
+    train_values = []
+    # 测试数据集
+    test_values = []
     # 训练集标签
-    labels = []
+    train_labels = []
+    # 测试集标签
+    test_labels = []
     # 保存损失平均值
     losses_mean = []
+    # 每批数据的大小
+    batch_size = 1000
 
-    # 随机创建一组多标签数据集和
+    # 随机创建一组多标签训练数据集
     for i in range(10000):
         category = (np.random.choice([0, 1]), np.random.choice([0, 1]))
         if category == (1, 0):
-            train.append([np.random.uniform(0.1, 1), 0])
-            labels.append([1, 0, 1])
+            train_values.append([np.random.uniform(0.1, 1), 0])
+            train_labels.append([1, 0, 1])
         if category == (0, 1):
-            train.append([0, np.random.uniform(0.1, 1)])
-            labels.append([0, 1, 0])
+            train_values.append([0, np.random.uniform(0.1, 1)])
+            train_labels.append([0, 1, 0])
         if category == (0, 0):
-            train.append([np.random.uniform(0.1, 1), np.random.uniform(0.1, 1)])
-            labels.append([0, 0, 1])
+            train_values.append([np.random.uniform(0.1, 1), np.random.uniform(0.1, 1)])
+            train_labels.append([0, 0, 1])
         if category == (1, 1):
-            train.append([0, 0])
-            labels.append([1, 0, 0])
+            train_values.append([0, 0])
+            train_labels.append([1, 0, 0])
+    # 创建训练数据集
+    train_dataset = TensorDataset(
+        torch.tensor(train_values, dtype=torch.float, requires_grad=True),
+        torch.tensor(train_labels, dtype=torch.float, requires_grad=True))
+
+    # 随机创建一组多标签测试数据集
+    for i in range(10000):
+        category = (np.random.choice([0, 1]), np.random.choice([0, 1]))
+        if category == (1, 0):
+            test_values.append([np.random.uniform(0.1, 1), 0])
+            test_labels.append([1, 0, 1])
+        if category == (0, 1):
+            test_values.append([0, np.random.uniform(0.1, 1)])
+            test_labels.append([0, 1, 0])
+        if category == (0, 0):
+            test_values.append([np.random.uniform(0.1, 1), np.random.uniform(0.1, 1)])
+            test_labels.append([0, 0, 1])
+        if category == (1, 1):
+            test_values.append([0, 0])
+            test_labels.append([1, 0, 0])
+    # 创建训练数据集
+    test_dataset = TensorDataset(
+        torch.tensor(test_values, dtype=torch.float, requires_grad=True),
+        torch.tensor(test_labels, dtype=torch.float, requires_grad=True))
+
+    # 创建训练数据加载器，并且设置每批数据的大小，以及每次读取数据时随机打乱数据
+    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+
+    # 把数据集分为验证即和测试集
+    indices = range(len(test_dataset))
+    indices_val = indices[:5000]
+    indices_test = indices[5000:]
+    # 构造数据采样器
+    sampler_val = SubsetRandomSampler(indices_val)
+    sampler_test = SubsetRandomSampler(indices_test)
+    # 创建验证集加载器
+    validation_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, sampler=sampler_val)
+    # 测试集加载器
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, sampler=sampler_test)
 
     # 获取标签数量
-    label_type_size = len(labels[0])
+    label_type_size = len(train_labels[0])
     # 创建分类模型
     clf = MLCnn(label_type_size)
 

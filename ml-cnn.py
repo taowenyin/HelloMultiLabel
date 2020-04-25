@@ -193,6 +193,7 @@ if __name__ == '__main__':
     # 绘制图像
     plt.plot(range(len(record_train_loss)), record_train_loss, label='Train Loss')
     plt.plot(range(len(record_val_loss)), record_val_loss, label='Validation Loss')
+    # 在(30, 0.45)位置绘制文字
     plt.text(30, 0.45, 'Test Mean Loss: {:.3f}'.format(np.mean(record_test_loss)),
              bbox=dict(boxstyle='round,pad=0.5', fc='yellow', ec='k',lw=1 ,alpha=0.5))
     plt.ylabel('Loss')
